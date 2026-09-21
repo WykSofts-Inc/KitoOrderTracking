@@ -9,7 +9,29 @@
 import XCTest
 @testable import KitoOrderTracking
 
+@MainActor
 final class KitoOrderTrackingTests: XCTestCase {
+    func testSetUpdateJumpsDirectlyWithoutWaitingForFetch() {
+        let viewModel = KitoOrderTrackingViewModel(
+            orderID: "test", merchantName: "Test Kitchen",
+            initial: KitoOrderUpdate(stage: .placed), refreshInterval: 999,
+            fetchUpdate: { KitoOrderUpdate(stage: .placed) }
+        )
+        viewModel.setUpdate(KitoOrderUpdate(stage: .cancelled, detail: "Cancelled by user"))
+        XCTAssertEqual(viewModel.update.stage, .cancelled)
+        XCTAssertEqual(viewModel.update.detail, "Cancelled by user")
+    }
+
+    func testSetUpdateClearsAnyPriorError() {
+        let viewModel = KitoOrderTrackingViewModel(
+            orderID: "test", merchantName: "Test Kitchen",
+            initial: KitoOrderUpdate(stage: .placed), refreshInterval: 999,
+            fetchUpdate: { KitoOrderUpdate(stage: .placed) }
+        )
+        viewModel.setUpdate(KitoOrderUpdate(stage: .delivered))
+        XCTAssertNil(viewModel.lastError)
+    }
+
     func testStageOrderingIsSequential() {
         XCTAssertLessThan(KitoOrderStage.placed, .confirmed)
         XCTAssertLessThan(KitoOrderStage.confirmed, .preparing)
