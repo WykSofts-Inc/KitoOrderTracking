@@ -45,6 +45,26 @@ final class KitoOrderTrackingTests: XCTestCase {
         XCTAssertFalse(KitoOrderStage.preparing.isTerminal)
     }
 
+    func testStyleDefaultsToVerticalTimelineLayout() {
+        XCTAssertEqual(describeLayout(KitoOrderTrackingStyle.default.timelineLayout), "vertical")
+    }
+
+    func testStyleAcceptsEveryTimelineLayout() {
+        for layout: KitoOrderTimelineLayout in [.vertical, .horizontal, .compact, .stepper] {
+            let style = KitoOrderTrackingStyle(timelineLayout: layout)
+            XCTAssertEqual(describeLayout(style.timelineLayout), describeLayout(layout))
+        }
+    }
+
+    private func describeLayout(_ layout: KitoOrderTimelineLayout) -> String {
+        switch layout {
+        case .vertical: return "vertical"
+        case .horizontal: return "horizontal"
+        case .compact: return "compact"
+        case .stepper: return "stepper"
+        }
+    }
+
     func testOrderUpdateFillsDefaultHeadlineFromStage() {
         let update = KitoOrderUpdate(stage: .preparing)
         XCTAssertEqual(update.headline, "Preparing")
