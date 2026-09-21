@@ -78,7 +78,7 @@ let style = KitoOrderTrackingStyle(
     ],
     showsCourierRow: true,
     showsETA: true,
-    compactTimeline: false,
+    timelineLayout: .vertical,
     cornerRadius: 28
 )
 
@@ -91,7 +91,7 @@ defaults matching your `KitoTheme`.
 ## Sample 3 — Compact timeline for a small card, not a full screen
 
 ```swift
-KitoOrderStageTimelineView(currentStage: update.stage, style: KitoOrderTrackingStyle(compactTimeline: true))
+KitoOrderStageTimelineView(currentStage: update.stage, style: KitoOrderTrackingStyle(timelineLayout: .compact))
     .frame(height: 4)
 ```
 
@@ -178,7 +178,7 @@ for await token in viewModel.pushTokenUpdates() {
 List(pastOrders) { order in
     VStack(alignment: .leading) {
         Text(order.merchantName)
-        KitoOrderStageTimelineView(currentStage: order.finalStage, style: .init(compactTimeline: true))
+        KitoOrderStageTimelineView(currentStage: order.finalStage, style: .init(timelineLayout: .compact))
     }
 }
 ```
