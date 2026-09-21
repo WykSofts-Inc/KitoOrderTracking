@@ -9,7 +9,29 @@
 import XCTest
 @testable import KitoOrderTracking
 
+@MainActor
 final class KitoOrderTrackingTests: XCTestCase {
+    func testSetUpdateJumpsDirectlyWithoutWaitingForFetch() {
+        let viewModel = KitoOrderTrackingViewModel(
+            orderID: "test", merchantName: "Test Kitchen",
+            initial: KitoOrderUpdate(stage: .placed), refreshInterval: 999,
+            fetchUpdate: { KitoOrderUpdate(stage: .placed) }
+        )
+        viewModel.setUpdate(KitoOrderUpdate(stage: .cancelled, detail: "Cancelled by user"))
+        XCTAssertEqual(viewModel.update.stage, .cancelled)
+        XCTAssertEqual(viewModel.update.detail, "Cancelled by user")
+    }
+
+    func testSetUpdateClearsAnyPriorError() {
+        let viewModel = KitoOrderTrackingViewModel(
+            orderID: "test", merchantName: "Test Kitchen",
+            initial: KitoOrderUpdate(stage: .placed), refreshInterval: 999,
+            fetchUpdate: { KitoOrderUpdate(stage: .placed) }
+        )
+        viewModel.setUpdate(KitoOrderUpdate(stage: .delivered))
+        XCTAssertNil(viewModel.lastError)
+    }
+
     func testStageOrderingIsSequential() {
         XCTAssertLessThan(KitoOrderStage.placed, .confirmed)
         XCTAssertLessThan(KitoOrderStage.confirmed, .preparing)
@@ -21,6 +43,26 @@ final class KitoOrderTrackingTests: XCTestCase {
         XCTAssertTrue(KitoOrderStage.delivered.isTerminal)
         XCTAssertTrue(KitoOrderStage.cancelled.isTerminal)
         XCTAssertFalse(KitoOrderStage.preparing.isTerminal)
+    }
+
+    func testStyleDefaultsToVerticalTimelineLayout() {
+        XCTAssertEqual(describeLayout(KitoOrderTrackingStyle.default.timelineLayout), "vertical")
+    }
+
+    func testStyleAcceptsEveryTimelineLayout() {
+        for layout: KitoOrderTimelineLayout in [.vertical, .horizontal, .compact, .stepper] {
+            let style = KitoOrderTrackingStyle(timelineLayout: layout)
+            XCTAssertEqual(describeLayout(style.timelineLayout), describeLayout(layout))
+        }
+    }
+
+    private func describeLayout(_ layout: KitoOrderTimelineLayout) -> String {
+        switch layout {
+        case .vertical: return "vertical"
+        case .horizontal: return "horizontal"
+        case .compact: return "compact"
+        case .stepper: return "stepper"
+        }
     }
 
     func testOrderUpdateFillsDefaultHeadlineFromStage() {

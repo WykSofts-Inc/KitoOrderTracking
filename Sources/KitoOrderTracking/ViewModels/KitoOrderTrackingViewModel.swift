@@ -90,6 +90,27 @@ public final class KitoOrderTrackingViewModel: KitoViewModel {
         await refreshOnce()
     }
 
+    /// Starts the Live Activity only — no `fetchUpdate` polling loop. For
+    /// callers who drive `update` themselves entirely via `setUpdate` (a
+    /// manual test/demo screen) or exclusively via APNs through
+    /// `pushTokenUpdates()`, and don't want an interval-based poll running
+    /// at all. `stopTracking()` still correctly ends whatever this started.
+    public func startLiveActivityOnly() {
+        beginLiveActivity()
+    }
+
+    /// Sets the current update directly, bypassing `fetchUpdate` — for
+    /// seeding state from a push notification payload your app already
+    /// decoded, or for a UI that lets a user/tester jump straight to an
+    /// arbitrary stage (a stage picker in a demo app, a QA scenario button)
+    /// without waiting for the normal poll cadence. Still pushes the change
+    /// to the Live Activity if one is active.
+    public func setUpdate(_ update: KitoOrderUpdate) {
+        self.update = update
+        self.lastError = nil
+        Task { await pushLiveActivityUpdate(update) }
+    }
+
     private func refreshOnce() async {
         do {
             let latest = try await fetchUpdate()
