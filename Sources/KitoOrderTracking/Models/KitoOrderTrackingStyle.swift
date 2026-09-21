@@ -9,6 +9,21 @@
 import SwiftUI
 import KitoCore
 
+/// How the in-progress stages render. `.cancelled` and `.delivered` always
+/// get their own dedicated terminal treatment (a single celebratory/warning
+/// row) regardless of this setting — it only affects the four stages in
+/// between.
+public enum KitoOrderTimelineLayout: Sendable {
+    /// Connected circles down the left, label to the right — the original default.
+    case vertical
+    /// Same steps, laid out left-to-right with labels below — fits a card better than a full screen.
+    case horizontal
+    /// A thin thermometer of capsules, no labels or icons — for a compact card or list row.
+    case compact
+    /// Vertical layout with numbered circles (1, 2, 3…) instead of stage icons.
+    case stepper
+}
+
 /// Every customizable knob the screen, Live Activity, and widget views read.
 /// Defaults derive from `KitoTheme`/`KitoChartTheme`-style conventions — pass
 /// nothing and it matches the rest of your themed app; override individual
@@ -23,7 +38,7 @@ public struct KitoOrderTrackingStyle: Sendable {
     public var stageIcons: [KitoOrderStage: String]
     public var showsCourierRow: Bool
     public var showsETA: Bool
-    public var compactTimeline: Bool
+    public var timelineLayout: KitoOrderTimelineLayout
     public var cornerRadius: CGFloat
 
     public init(
@@ -35,7 +50,7 @@ public struct KitoOrderTrackingStyle: Sendable {
         stageIcons: [KitoOrderStage: String] = [:],
         showsCourierRow: Bool = true,
         showsETA: Bool = true,
-        compactTimeline: Bool = false,
+        timelineLayout: KitoOrderTimelineLayout = .vertical,
         cornerRadius: CGFloat = 20
     ) {
         self.accentColor = accentColor
@@ -46,7 +61,7 @@ public struct KitoOrderTrackingStyle: Sendable {
         self.stageIcons = stageIcons
         self.showsCourierRow = showsCourierRow
         self.showsETA = showsETA
-        self.compactTimeline = compactTimeline
+        self.timelineLayout = timelineLayout
         self.cornerRadius = cornerRadius
     }
 
