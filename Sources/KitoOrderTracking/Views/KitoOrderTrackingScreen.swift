@@ -85,12 +85,18 @@ public struct KitoOrderTrackingScreen: View {
         }
     }
 
+    /// `Text(_:style:)` with `.relative` is a live-updating system text view
+    /// (SwiftUI reschedules it itself) — "1 hr, 20 min", ticking down to
+    /// "20 min," "5 min," and so on with no timer/state of our own to
+    /// manage. The pulsing clock glyph is the one bit of animation this
+    /// view adds explicitly.
     private func etaRow(_ eta: Date) -> some View {
-        HStack {
+        HStack(spacing: 6) {
             Image(systemName: "clock.fill")
-            Text("Arriving by \(eta.formatted(date: .omitted, time: .shortened))")
-                .font(style.etaFont)
+                .symbolEffect(.pulse, options: .repeating)
+            Text("Arriving in \(eta, style: .relative)")
         }
+        .font(style.etaFont)
         .foregroundStyle(style.accentColor ?? theme.colors.primary)
     }
 
