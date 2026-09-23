@@ -41,9 +41,17 @@ public struct KitoOrderLockScreenView: View {
                 Text(merchantName).font(.caption).foregroundStyle(.secondary)
                 Text(state.headline).font(style.headlineFont.weight(.semibold))
                 if let eta = state.estimatedArrival {
-                    Text("Arriving \(eta.formatted(date: .omitted, time: .shortened))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    // Live-updating system text (SwiftUI reschedules this
+                    // itself) — "1 hr, 20 min" ticking down with no push
+                    // update or timer of our own needed.
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .symbolEffect(.pulse, options: .repeating)
+                            .font(.caption2)
+                        Text("Arriving in \(eta, style: .relative)")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.secondary)
                 }
             }
             Spacer()
