@@ -258,7 +258,7 @@ public struct KitoOrderEventTimeline: View {
 
 public extension KitoOrderEvent {
     /// A plausible history for `stage`, timed backwards from `now` — for previews and demos.
-    static func sampleHistory(upTo stage: KitoOrderStage, merchant: String = "Mama Oliech", courier: String = "Amara", now: Date = Date()) -> [KitoOrderEvent] {
+    static func sampleHistory(upTo stage: KitoOrderStage, merchant: String = "Mama Akinyi's Kitchen", courier: String = "Amara", now: Date = Date()) -> [KitoOrderEvent] {
         let base = now.addingTimeInterval(-26 * 60)
         let all: [KitoOrderEvent] = [
             KitoOrderEvent(stage: .placed, detail: "Order #KE-2048 · 3 items", time: base, location: "Kilimani, Nairobi"),

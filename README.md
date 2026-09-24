@@ -210,7 +210,7 @@ KitoDeliveryProofView(proof: KitoDeliveryProof(recipientName: "Wycliff N", deliv
 KitoSignaturePad(strokes: $strokes)
 
 // The real Live Activity views drawn in-app, for previews and onboarding
-KitoLiveActivityPreview(merchantName: "Mama Oliech", update: update, surface: .islandExpanded)
+KitoLiveActivityPreview(merchantName: "Mama Akinyi's Kitchen", update: update, surface: .islandExpanded)
 ```
 
 `KitoETA` holds the countdown maths (`clock`, `minutesText`, `elapsedFraction`) if you
