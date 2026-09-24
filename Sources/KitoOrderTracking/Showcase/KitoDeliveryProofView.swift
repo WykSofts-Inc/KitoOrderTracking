@@ -11,7 +11,7 @@ import KitoCore
 
 /// Draws signature strokes given in 0...1 unit coordinates, scaled to whatever frame it gets.
 /// Animate `trim` to "write" the signature.
-public struct KitoSignatureShape: Shape {
+public struct KitoDeliverySignatureShape: Shape {
     public var strokes: [[CGPoint]]
 
     public init(strokes: [[CGPoint]]) {
@@ -38,8 +38,8 @@ public struct KitoSignatureShape: Shape {
 }
 
 /// A pad the recipient signs with a finger. Strokes are stored in unit coordinates so they
-/// redraw at any size with `KitoSignatureShape`.
-public struct KitoSignaturePad: View {
+/// redraw at any size with `KitoDeliverySignatureShape`.
+public struct KitoDeliverySignaturePad: View {
     @Environment(\.kitoTheme) private var theme
     @Binding var strokes: [[CGPoint]]
     let prompt: String
@@ -69,7 +69,7 @@ public struct KitoSignaturePad: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .allowsHitTesting(false)
                 }
-                KitoSignatureShape(strokes: strokes)
+                KitoDeliverySignatureShape(strokes: strokes)
                     .stroke(theme.colors.onBackground, style: StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
             }
             .contentShape(Rectangle())
@@ -137,7 +137,7 @@ public struct KitoDeliveryProofView: View {
                 Text("Signed by \(proof.recipientName)")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(theme.colors.onBackground.opacity(0.55))
-                KitoSignatureShape(strokes: proof.signature.isEmpty ? KitoDeliveryProof.sampleSignature : proof.signature)
+                KitoDeliverySignatureShape(strokes: proof.signature.isEmpty ? KitoDeliveryProof.sampleSignature : proof.signature)
                     .trim(from: 0, to: drawn)
                     .stroke(theme.colors.onBackground, style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
                     .frame(height: 70)

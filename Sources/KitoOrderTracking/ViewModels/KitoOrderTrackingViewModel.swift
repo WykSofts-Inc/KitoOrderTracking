@@ -25,6 +25,8 @@ public final class KitoOrderTrackingViewModel: KitoViewModel {
     public var refreshInterval: TimeInterval
     public private(set) var isLiveActivityActive = false
     public private(set) var lastError: Error?
+    /// Whether `fetchUpdate` is being called on the refresh interval right now.
+    public private(set) var isPolling = false
 
     public let orderID: String
     public let merchantName: String
@@ -65,9 +67,23 @@ public final class KitoOrderTrackingViewModel: KitoViewModel {
 
     /// Starts the Live Activity (if the user has them enabled — silently
     /// skipped otherwise, never an error) and begins auto-refreshing.
+    /// Calling it again while a Live Activity is already running doesn't start a second one.
     public func startTracking() {
         beginLiveActivity()
+        startPolling()
+    }
+
+    /// Stops polling and ends the Live Activity.
+    public func stopTracking() {
+        stopPolling()
+        Task { await endLiveActivity() }
+    }
+
+    /// Starts (or restarts) calling `fetchUpdate` on the refresh interval, without touching the
+    /// Live Activity. Stops by itself at a terminal stage.
+    public func startPolling() {
         refreshTask?.cancel()
+        isPolling = true
         refreshTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
@@ -75,13 +91,16 @@ public final class KitoOrderTrackingViewModel: KitoViewModel {
                 if self.update.stage.isTerminal { break }
                 try? await Task.sleep(nanoseconds: UInt64(self.refreshInterval * 1_000_000_000))
             }
+            if !Task.isCancelled { self.isPolling = false }
         }
     }
 
-    public func stopTracking() {
+    /// Stops polling and leaves the Live Activity running — for when the tracking screen goes
+    /// away but the order is still on its way.
+    public func stopPolling() {
         refreshTask?.cancel()
         refreshTask = nil
-        Task { await endLiveActivity() }
+        isPolling = false
     }
 
     /// Triggers one refresh immediately, outside the automatic interval —
@@ -131,6 +150,7 @@ public final class KitoOrderTrackingViewModel: KitoViewModel {
     private func beginLiveActivity() {
         #if canImport(ActivityKit)
         guard #available(iOS 16.1, *) else { return }
+        guard typedActivity == nil else { return }
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             // User has Live Activities disabled system-wide, or for this app
             // specifically — fail open: tracking still works via the in-app

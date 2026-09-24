@@ -145,7 +145,7 @@ public struct KitoDeliveryProof: Equatable, Sendable {
     public var recipientName: String
     public var deliveredAt: Date
     public var photoURL: URL?
-    /// Signature strokes in 0...1 unit coordinates (x right, y down), drawn by `KitoSignatureShape`.
+    /// Signature strokes in 0...1 unit coordinates (x right, y down), drawn by `KitoDeliverySignatureShape`.
     public var signature: [[CGPoint]]
     /// The one-time code the customer read out, if one was used.
     public var code: String?

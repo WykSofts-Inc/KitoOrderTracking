@@ -13,20 +13,31 @@ import KitoCore
 /// by `viewModel.update`. Call `viewModel.startTracking()` in `.task` (or
 /// let this view do it via `startsTrackingOnAppear`) and everything after
 /// that is automatic.
+///
+/// Polling pauses when the screen goes away and picks up again when it comes
+/// back, so a closed tracking screen doesn't keep calling your server. The
+/// Live Activity keeps running — the Lock Screen is where people follow an
+/// order once they leave the app. Pass `endsTrackingOnDisappear: true` to end
+/// the Live Activity too.
 public struct KitoOrderTrackingScreen: View {
     @Environment(\.kitoTheme) private var theme
     let viewModel: KitoOrderTrackingViewModel
     let style: KitoOrderTrackingStyle
     let startsTrackingOnAppear: Bool
+    let endsTrackingOnDisappear: Bool
+
+    @State private var pausedPolling = false
 
     public init(
         viewModel: KitoOrderTrackingViewModel,
         style: KitoOrderTrackingStyle = .default,
-        startsTrackingOnAppear: Bool = true
+        startsTrackingOnAppear: Bool = true,
+        endsTrackingOnDisappear: Bool = false
     ) {
         self.viewModel = viewModel
         self.style = style
         self.startsTrackingOnAppear = startsTrackingOnAppear
+        self.endsTrackingOnDisappear = endsTrackingOnDisappear
     }
 
     public var body: some View {
@@ -56,10 +67,20 @@ public struct KitoOrderTrackingScreen: View {
         }
         .refreshable { await viewModel.refreshNow() }
         .task {
-            if startsTrackingOnAppear { viewModel.startTracking() }
+            if startsTrackingOnAppear {
+                viewModel.startTracking()
+            } else if pausedPolling, !viewModel.update.stage.isTerminal {
+                viewModel.startPolling()
+            }
+            pausedPolling = false
         }
         .onDisappear {
-            if viewModel.update.stage.isTerminal { viewModel.stopTracking() }
+            if endsTrackingOnDisappear || viewModel.update.stage.isTerminal {
+                viewModel.stopTracking()
+            } else if viewModel.isPolling {
+                viewModel.stopPolling()
+                pausedPolling = true
+            }
         }
     }
 
