@@ -10,7 +10,8 @@ import SwiftUI
 import KitoCore
 
 /// Draws signature strokes given in 0...1 unit coordinates, scaled to whatever frame it gets.
-/// Animate `trim` to "write" the signature.
+/// Animate `trim` to "write" the signature. Like any `Shape` it mirrors in right-to-left layouts,
+/// so draw it inside `.environment(\.layoutDirection, .leftToRight)`, as the package's own views do.
 public struct KitoDeliverySignatureShape: Shape {
     public var strokes: [[CGPoint]]
 
@@ -69,8 +70,11 @@ public struct KitoDeliverySignaturePad: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .allowsHitTesting(false)
                 }
+                // Strokes are recorded from the physical touch location; a Shape would mirror them
+                // in RTL, so draw the ink left-to-right.
                 KitoDeliverySignatureShape(strokes: strokes)
                     .stroke(theme.colors.onBackground, style: StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
+                    .environment(\.layoutDirection, .leftToRight)
             }
             .contentShape(Rectangle())
             .gesture(
@@ -140,6 +144,7 @@ public struct KitoDeliveryProofView: View {
                 KitoDeliverySignatureShape(strokes: proof.signature.isEmpty ? KitoDeliveryProof.sampleSignature : proof.signature)
                     .trim(from: 0, to: drawn)
                     .stroke(theme.colors.onBackground, style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
+                    .environment(\.layoutDirection, .leftToRight) // a signature is never mirrored
                     .frame(height: 70)
                     .padding(.horizontal, 8)
                     .background(alignment: .bottom) {

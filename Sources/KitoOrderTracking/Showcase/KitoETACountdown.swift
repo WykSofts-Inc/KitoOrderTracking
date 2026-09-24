@@ -85,6 +85,7 @@ public struct KitoETACountdown: View {
                 .trim(from: 0, to: fraction)
                 .stroke(AngularGradient(colors: [accent.opacity(0.4), accent], center: .center, startAngle: .degrees(0), endAngle: .degrees(360 * max(fraction, 0.01))), style: StrokeStyle(lineWidth: 12, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+                .flipsForRightToLeftLayoutDirection(true) // Circle doesn't mirror but rotation does; keeps the start at the top in RTL
                 .animation(reduceMotion ? nil : .linear(duration: 1), value: fraction)
             VStack(spacing: 2) {
                 Text(remaining < 30 ? "Now" : "\(Int((remaining / 60).rounded(.up)))")
