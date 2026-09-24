@@ -27,17 +27,31 @@ public enum KitoETACountdownStyle: String, Sendable, CaseIterable {
 /// ```swift
 /// KitoETACountdown(eta: update.estimatedArrival!, start: pickedUpAt, style: .ring)
 /// ```
+///
+/// When the arrival time itself moves — a courier who hasn't picked up yet, a demo clock, an ETA
+/// your model recalculates — pass closures instead. They're read on every tick, so the countdown
+/// stays current without anything else redrawing it:
+///
+/// ```swift
+/// KitoETACountdown(style: .ring, eta: { now in order.eta(at: now) }, start: { _ in order.pickedUpAt })
+/// ```
 public struct KitoETACountdown: View {
     @Environment(\.kitoTheme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    let eta: Date
-    let start: Date?
+    let etaAt: (Date) -> Date
+    let startAt: (Date) -> Date?
     let style: KitoETACountdownStyle
     let tint: Color?
 
     public init(eta: Date, start: Date? = nil, style: KitoETACountdownStyle = .ring, tint: Color? = nil) {
-        self.eta = eta
-        self.start = start
+        self.init(style: style, tint: tint, eta: { _ in eta }, start: { _ in start })
+    }
+
+    /// A countdown whose arrival (and start) are worked out again on every tick from the current time.
+    public init(style: KitoETACountdownStyle = .ring, tint: Color? = nil,
+                eta: @escaping (Date) -> Date, start: @escaping (Date) -> Date? = { _ in nil }) {
+        self.etaAt = eta
+        self.startAt = start
         self.style = style
         self.tint = tint
     }
@@ -46,13 +60,15 @@ public struct KitoETACountdown: View {
 
     public var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            let remaining = KitoETA.remaining(until: eta, now: context.date)
+            let now = context.date
+            let eta = etaAt(now)
+            let remaining = KitoETA.remaining(until: eta, now: now)
             Group {
                 switch style {
-                case .ring: ring(remaining: remaining, now: context.date)
+                case .ring: ring(eta: eta, start: startAt(now), remaining: remaining, now: now)
                 case .digital: digital(remaining: remaining)
                 case .pill: pill(remaining: remaining)
-                case .headline: headline(remaining: remaining)
+                case .headline: headline(eta: eta, remaining: remaining)
                 }
             }
             .accessibilityElement(children: .ignore)
@@ -60,7 +76,7 @@ public struct KitoETACountdown: View {
         }
     }
 
-    private func ring(remaining: TimeInterval, now: Date) -> some View {
+    private func ring(eta: Date, start: Date?, remaining: TimeInterval, now: Date) -> some View {
         let begin = start ?? eta.addingTimeInterval(-30 * 60)
         let fraction = KitoETA.elapsedFraction(start: begin, eta: eta, now: now)
         return ZStack {
@@ -120,7 +136,7 @@ public struct KitoETACountdown: View {
         .background(accent.opacity(0.14), in: Capsule())
     }
 
-    private func headline(remaining: TimeInterval) -> some View {
+    private func headline(eta: Date, remaining: TimeInterval) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(remaining < 30 ? "Arriving now" : "Arriving in \(KitoETA.minutesText(remaining))")
                 .font(.title2.weight(.heavy))

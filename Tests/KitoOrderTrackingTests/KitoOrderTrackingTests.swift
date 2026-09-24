@@ -32,6 +32,20 @@ final class KitoOrderTrackingTests: XCTestCase {
         XCTAssertNil(viewModel.lastError)
     }
 
+    func testStopPollingLeavesTheModelReadyToResume() {
+        let viewModel = KitoOrderTrackingViewModel(
+            orderID: "o-1", merchantName: "M", initial: KitoOrderUpdate(stage: .preparing), refreshInterval: 60,
+            fetchUpdate: { KitoOrderUpdate(stage: .preparing) })
+        XCTAssertFalse(viewModel.isPolling)
+        viewModel.startPolling()
+        XCTAssertTrue(viewModel.isPolling)
+        viewModel.stopPolling()
+        XCTAssertFalse(viewModel.isPolling)
+        viewModel.startPolling()
+        XCTAssertTrue(viewModel.isPolling)
+        viewModel.stopPolling()
+    }
+
     func testStageOrderingIsSequential() {
         XCTAssertLessThan(KitoOrderStage.placed, .confirmed)
         XCTAssertLessThan(KitoOrderStage.confirmed, .preparing)

@@ -14,7 +14,7 @@ else on this page works without that extension.
 ## Install
 
 ```swift
-.package(url: "https://github.com/WykSofts-Inc/KitoOrderTracking.git", from: "1.1.0"),
+.package(url: "https://github.com/WykSofts-Inc/KitoOrderTracking.git", from: "1.2.0"),
 ```
 
 ## The one type you produce from real data: `KitoOrderUpdate`
@@ -161,6 +161,20 @@ Button("Cancel order", role: .destructive) {
 Tracking also stops itself automatically once a stage is terminal
 (`.delivered` or `.cancelled`).
 
+`KitoOrderTrackingScreen` pauses polling when it disappears and resumes when it
+comes back, so a closed screen doesn't keep calling your server; the Live
+Activity keeps running so the order can still be followed from the Lock
+Screen. To end the Live Activity when the screen goes away as well:
+
+```swift
+KitoOrderTrackingScreen(viewModel: viewModel, endsTrackingOnDisappear: true)
+```
+
+Driving it yourself: `viewModel.stopPolling()` / `startPolling()` pause and
+resume polling without touching the Live Activity, and `isPolling` says
+whether it's running. Calling `startTracking()` again never starts a second
+Live Activity.
+
 ## Sample 8 — Real push updates instead of polling
 
 See [docs/INTEGRATION.md](docs/INTEGRATION.md#real-push-updates-optional-beyond-self-refresh)
@@ -204,10 +218,12 @@ KitoCourierCard(
 
 // A live ETA that ticks on its own
 KitoETACountdown(eta: eta, start: pickedUpAt, style: .ring)   // .digital, .pill, .headline
+// ...or with an arrival time that moves: read again on every tick
+KitoETACountdown(style: .ring, eta: { now in order.eta(at: now) }, start: { _ in order.pickedUpAt })
 
 // Proof of delivery, and a pad to capture the signature
 KitoDeliveryProofView(proof: KitoDeliveryProof(recipientName: "Wycliff N", deliveredAt: .now, code: "4821"))
-KitoSignaturePad(strokes: $strokes)
+KitoDeliverySignaturePad(strokes: $strokes)
 
 // The real Live Activity views drawn in-app, for previews and onboarding
 KitoLiveActivityPreview(merchantName: "Mama Akinyi's Kitchen", update: update, surface: .islandExpanded)
@@ -216,6 +232,20 @@ KitoLiveActivityPreview(merchantName: "Mama Akinyi's Kitchen", update: update, s
 `KitoETA` holds the countdown maths (`clock`, `minutesText`, `elapsedFraction`) if you
 want your own presentation. Every animation respects Reduce Motion. The Live Activity
 attributes and widget views are unchanged, so existing widget extensions keep working.
+
+## Migrating from 1.1
+
+The proof-of-delivery signature types are renamed so they don't clash with
+[KitoSignature](https://github.com/WykSofts-Inc/KitoSignature), which owns `KitoSignaturePad`:
+
+| 1.1 | 1.2 |
+| --- | --- |
+| `KitoSignaturePad` | `KitoDeliverySignaturePad` |
+| `KitoSignatureShape` | `KitoDeliverySignatureShape` |
+
+Parameters are unchanged. `KitoOrderTrackingScreen` now pauses polling whenever it
+disappears (it used to keep polling until the order was delivered); the Live Activity
+behaviour is unchanged unless you pass `endsTrackingOnDisappear: true`.
 
 ## What ships in this package vs. what you build
 
