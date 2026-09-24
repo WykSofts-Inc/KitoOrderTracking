@@ -259,6 +259,13 @@ behaviour is unchanged unless you pass `endsTrackingOnDisappear: true`.
 | Real order data | — | ✅ (`fetchUpdate` closure) |
 | APNs push server for real-time updates | — | ✅ (optional; polling works without it) |
 
+## Right-to-left
+
+- The timeline, status bar, courier card and Live Activity views mirror automatically in Arabic/Hebrew layouts; the vehicle symbols flip with them.
+- Signatures are recorded from the physical touch point and drawn left-to-right, so the ink follows the finger and a signature is never shown mirrored.
+- If you draw `KitoDeliverySignatureShape` yourself, add `.environment(\.layoutDirection, .leftToRight)` to it.
+- The ETA countdown ring starts at the top in RTL too (mirrored).
+
 ## License
 
 MIT
