@@ -14,7 +14,7 @@ else on this page works without that extension.
 ## Install
 
 ```swift
-.package(url: "https://github.com/WykSofts-Inc/KitoOrderTracking.git", from: "1.0.0"),
+.package(url: "https://github.com/WykSofts-Inc/KitoOrderTracking.git", from: "1.1.0"),
 ```
 
 ## The one type you produce from real data: `KitoOrderUpdate`
@@ -182,6 +182,40 @@ List(pastOrders) { order in
     }
 }
 ```
+
+## Showcase components (1.1)
+
+```swift
+// Status chips for order lists
+KitoOrderStatusChip(stage: .outForDelivery)                 // pulsing dot, tinted
+KitoOrderStatusChip(stage: .delivered, style: .solid)
+
+// A track with the courier's vehicle riding along it
+KitoOrderProgressTrack(stage: update.stage, progress: update.progress, vehicle: .motorbike)
+
+// A detailed history with times and places
+KitoOrderEventTimeline(events: events, currentStage: update.stage)
+
+// The courier, with call and chat
+KitoCourierCard(
+    courier: KitoCourier(name: "Amara Mwangi", phone: "+254712345678", vehicle: .motorbike, plate: "KMFB 214C", rating: 4.9),
+    onChat: { showChat = true }
+)
+
+// A live ETA that ticks on its own
+KitoETACountdown(eta: eta, start: pickedUpAt, style: .ring)   // .digital, .pill, .headline
+
+// Proof of delivery, and a pad to capture the signature
+KitoDeliveryProofView(proof: KitoDeliveryProof(recipientName: "Wycliff N", deliveredAt: .now, code: "4821"))
+KitoSignaturePad(strokes: $strokes)
+
+// The real Live Activity views drawn in-app, for previews and onboarding
+KitoLiveActivityPreview(merchantName: "Mama Oliech", update: update, surface: .islandExpanded)
+```
+
+`KitoETA` holds the countdown maths (`clock`, `minutesText`, `elapsedFraction`) if you
+want your own presentation. Every animation respects Reduce Motion. The Live Activity
+attributes and widget views are unchanged, so existing widget extensions keep working.
 
 ## What ships in this package vs. what you build
 
